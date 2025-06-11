@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>混乱计划机 (Chaos Planner)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>混乱计划机 <span class="subtitle">Chaos Planner</span></h1>
+            <p class="tagline">不知道接下来干啥？让我们随机抽一个任务吧！</p>
+        </header>
+
+        <main>
+            <!-- 主标签页切换 -->
+            <div class="main-tabs">
+                <div class="tabs-container">
+                    <button class="main-tab-btn active" data-tab="pending-tasks">待完成</button>
+                    <button class="main-tab-btn" data-tab="completed-tasks">已完成</button>
+                </div>
+                <div class="tabs-actions">
+                    <button class="tab-fab fab-add" id="add-task-fab">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="tab-fab fab-draw" id="draw-task-fab">
+                        <i class="fas fa-dice"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 待完成任务标签页 -->
+            <div class="main-tab-content active" id="pending-tasks">
+                <div class="task-list" id="active-tasks">
+                    <!-- 待完成任务列表将在这里动态生成 -->
+                </div>
+            </div>
+
+            <!-- 已完成任务标签页 -->
+            <div class="main-tab-content" id="completed-tasks">
+                <div class="task-list" id="archived-tasks">
+                    <!-- 已完成任务列表将在这里动态生成 -->
+                </div>
+            </div>
+        </main>
+
+        <!-- 添加任务模态框 -->
+        <div class="modal" id="add-task-modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 class="modal-title">添加新任务</h2>
+                <form id="add-task-form">
+                    <div class="form-group">
+                        <label for="new-task-name">任务名称</label>
+                        <input type="text" id="new-task-name" required placeholder="输入任务名称...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>重复性</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="new-repeatable" value="false" checked> 一次性</label>
+                            <label><input type="radio" name="new-repeatable" value="true"> 常规</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new-duration">预计时长 (分钟)</label>
+                        <input type="number" id="new-duration" min="1" value="30" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>优先级</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="new-priority" value="high"> 高</label>
+                            <label><input type="radio" name="new-priority" value="medium" checked> 中</label>
+                            <label><input type="radio" name="new-priority" value="low"> 低</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>能量等级</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="new-energy" value="high"> 高能量</label>
+                            <label><input type="radio" name="new-energy" value="medium" checked> 中能量</label>
+                            <label><input type="radio" name="new-energy" value="low"> 低能量</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new-category">任务分类</label>
+                        <input type="text" id="new-category" list="category-list" placeholder="输入或选择分类">
+                        <datalist id="category-list">
+                            <!-- 动态生成的分类选项将在这里 -->
+                        </datalist>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancel-add" class="secondary-btn">取消</button>
+                        <button type="submit" class="primary-btn">添加任务</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 编辑任务模态框 -->
+        <div class="modal" id="task-edit-modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 class="modal-title">编辑任务</h2>
+                <form id="edit-task-form">
+                    <input type="hidden" id="edit-task-id">
+                    
+                    <div class="form-group">
+                        <label for="edit-task-name">任务名称</label>
+                        <input type="text" id="edit-task-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>重复性</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="edit-repeatable" value="false" checked> 一次性</label>
+                            <label><input type="radio" name="edit-repeatable" value="true"> 常规</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-duration">预计时长 (分钟)</label>
+                        <input type="number" id="edit-duration" min="1" value="30" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>优先级</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="edit-priority" value="high"> 高</label>
+                            <label><input type="radio" name="edit-priority" value="medium" checked> 中</label>
+                            <label><input type="radio" name="edit-priority" value="low"> 低</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>能量等级</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="edit-energy" value="high"> 高能量</label>
+                            <label><input type="radio" name="edit-energy" value="medium" checked> 中能量</label>
+                            <label><input type="radio" name="edit-energy" value="low"> 低能量</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-category">任务分类</label>
+                        <input type="text" id="edit-category" list="category-list" placeholder="输入或选择分类">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancel-edit" class="secondary-btn">取消</button>
+                        <button type="submit" class="primary-btn">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 抽取任务设置模态框 -->
+        <div class="modal draw-settings-modal" id="draw-settings-modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 class="modal-title">抽取任务设置</h2>
+                
+                <div class="time-slot-section">
+                    <h3>你有多少空闲时间？</h3>
+                    <div class="time-options">
+                        <button class="time-btn" data-minutes="15">15分钟</button>
+                        <button class="time-btn" data-minutes="30">30分钟</button>
+                        <button class="time-btn" data-minutes="60">1小时</button>
+                        <div class="custom-time">
+                            <input type="number" id="custom-time" min="1" placeholder="自定义分钟数">
+                            <button id="set-custom-time" class="secondary-btn">设置</button>
+                        </div>
+                    </div>
+                    <div class="selected-time">
+                        <span>当前选择: </span>
+                        <span id="current-time-slot">30分钟</span>
+                    </div>
+                </div>
+
+                <div class="filters-section">
+                    <h3>筛选条件 (可选)</h3>
+                    <div class="filter-group">
+                        <div class="filter-category">
+                            <h4>优先级</h4>
+                            <div class="filter-options">
+                                <label><input type="checkbox" name="priority" value="high" checked> 高</label>
+                                <label><input type="checkbox" name="priority" value="medium" checked> 中</label>
+                                <label><input type="checkbox" name="priority" value="low" checked> 低</label>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-category">
+                            <h4>能量等级</h4>
+                            <div class="filter-options">
+                                <label><input type="checkbox" name="energy" value="high" checked> 高能量</label>
+                                <label><input type="checkbox" name="energy" value="medium" checked> 中能量</label>
+                                <label><input type="checkbox" name="energy" value="low" checked> 低能量</label>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-category">
+                            <h4>任务分类</h4>
+                            <div class="filter-options" id="category-filters">
+                                <!-- 动态生成的分类选项将在这里 -->
+                            </div>
+                        </div>
+                        
+                        <div class="filter-category">
+                            <h4>其他选项</h4>
+                            <div class="filter-options">
+                                <label><input type="checkbox" id="include-completed-repeatable"> 允许抽取今日已完成的常规任务</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="draw-section">
+                    <button id="draw-btn" class="primary-btn">抽取任务卡 <i class="fas fa-random"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任务卡片展示模态框 -->
+        <div class="modal task-card-modal" id="task-card-modal">
+            <div class="modal-content">
+                <span class="close-modal close-card">&times;</span>
+                <div id="task-card-container">
+                    <!-- 抽取的任务卡将在这里显示 -->
+                </div>
+                <div id="timer-container" class="timer-container">
+                    <!-- 计时器将在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加音效资源 -->
+    <audio id="card-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- 添加庆祝动画资源 -->
+    <div id="confetti-container" class="confetti-container"></div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
